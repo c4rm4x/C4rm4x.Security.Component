@@ -1,0 +1,30 @@
+{
+  "name": "securitymodule",
+  "version": "1.0.0",
+  "description": "Security module for all webapps using angular interceptors and authorization headers based on JWT",
+  "main": "src/angular-login.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/c4rm4x/C4rm4x.Security.Component.git"
+  },
+  "keywords": [
+    "security",
+    "jwt"
+  ],
+  "author": "]C4rM4X[",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/c4rm4x/C4rm4x.Security.Component/issues"
+  },
+  "homepage": "https://github.com/c4rm4x/C4rm4x.Security.Component#readme",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-concat": "^1.0.0",
+    "grunt-contrib-jasmine": "^1.0.0",
+    "grunt-contrib-uglify": "^1.0.1",
+    "grunt-contrib-watch": "^1.0.0"
+  }
+}

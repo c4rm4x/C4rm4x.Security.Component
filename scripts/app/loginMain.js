@@ -2,4 +2,5 @@
 
 var loginMain = angular.module('loginMain', [
 	'loginControllers',
-	'loginServices' ]);
+	'loginServices',
+	'loginDirectives' ]);

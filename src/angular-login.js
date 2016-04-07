@@ -44,9 +44,20 @@ loginControllers.controller('SigninCtrl', ['$scope', 'Auth', 'Token', 'RedirectT
 }]);
 'use strict';
 
+var loginDirectives = angular.module('loginDirectives', []);
+
+loginDirectives.directive('welcomeUser', [function() {
+	return {		
+		restrict: 'E',
+		templateUrl: 'partials/welcomeUser.html'
+	};
+}]);
+'use strict';
+
 var loginMain = angular.module('loginMain', [
 	'loginControllers',
-	'loginServices' ]);
+	'loginServices',
+	'loginDirectives' ]);
 'use strict';
 
 var loginServices = angular.module('loginServices', ['ngStorage', 'angular-jwt']);

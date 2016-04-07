@@ -3,6 +3,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-concat');
+	grunt.loadNpmTasks('grunt-contrib-copy');
 
 	grunt.initConfig({
 
@@ -39,17 +40,30 @@ module.exports = function(grunt) {
 		uglify: {
 			options: {
 				compress: true,
-				mangleProperties: true				
+				mangleProperties: false				
 			},
 			my_target: {
 				files: {
 					'src/angular-login.min.js': ['src/angular-login.js']
 				}
 			}			
+		},
+
+		copy: {
+			main: {
+				files: [
+				{
+					expand: true, 
+					src: 'scripts/app/partials/*',
+					dest: 'src/partials/',
+					flatten: true
+				}]
+			}
 		}
 	});
 
 	grunt.registerTask('default', ['watch']);
 	grunt.registerTask('test', ['jasmine']);
-	grunt.registerTask('min', ['concat', 'uglify'])
+	grunt.registerTask('min', ['concat', 'uglify']);
+	grunt.registerTask('deploy', ['concat', 'uglify', 'copy']);
 };

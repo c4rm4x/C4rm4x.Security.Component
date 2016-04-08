@@ -1,17 +1,17 @@
 'use strict';
 
-var loginServices = angular.module('loginServices', ['ngStorage', 'angular-jwt']);
+var loginServices = angular.module('angular-login-loginServices', ['ngStorage', 'angular-jwt']);
 
-loginServices.service('Config', [function() {
+loginServices.service('loginConfig', [function() {
 
 	this.configuration = {
 		tokenApiUrlEndPoint: 'http://localhost:8080/api/token',
 		pathToLogin: '/login'
 	};
 
-	this.setConfiguration = function(tokenApiUrlEndPoint, pathToLogin) {
-		this.configuration.tokenApiUrlEndPoint = tokenApiUrlEndPoint;
-		this.configuration.pathToLogin = pathToLogin;
+	this.setConfiguration = function(newConfig) {
+		this.configuration.tokenApiUrlEndPoint = newConfig.tokenApiUrlEndPoint || '';
+		this.configuration.pathToLogin = newConfig.pathToLogin || '';
 	};
 
 	this.getConfiguration = function() {
@@ -21,7 +21,7 @@ loginServices.service('Config', [function() {
 }]);
 
 
-loginServices.service('Storage', ['$sessionStorage', function($sessionStorage) {
+loginServices.service('loginStorage', ['$sessionStorage', function($sessionStorage) {
 	
 	this.getToken = function () {
 		return $sessionStorage.token || '';
@@ -38,7 +38,7 @@ loginServices.service('Storage', ['$sessionStorage', function($sessionStorage) {
 
 }]);
 
-loginServices.service('Token', ['$http', '$q', 'Config', function($http, $q, Config){
+loginServices.service('loginToken', ['$http', '$q', 'loginConfig', function($http, $q, Config){
 	
 	this.retrieveToken = function(username, pass) {
 		var deferred = $q.defer();
@@ -57,7 +57,7 @@ loginServices.service('Token', ['$http', '$q', 'Config', function($http, $q, Con
 
 }]);
 
-loginServices.service('RedirectToAttemptUrl', ['$location', 'Config', 
+loginServices.service('loginRedirectToAttemptUrl', ['$location', 'loginConfig', 
 	function($location, Config){
 
 	this.redirectToUrlAfterLogin = {url: '/'};
@@ -73,7 +73,7 @@ loginServices.service('RedirectToAttemptUrl', ['$location', 'Config',
 	
 }]);
 
-loginServices.service('Auth', ['Storage', 'jwtHelper', function(Storage, jwtHelper) {
+loginServices.service('loginAuth', ['loginStorage', 'jwtHelper', function(Storage, jwtHelper) {
 
 	this.isLoggedIn = function() {
 		return !!Storage.getToken();
@@ -97,7 +97,7 @@ loginServices.service('Auth', ['Storage', 'jwtHelper', function(Storage, jwtHelp
 
 }]);
 
-loginServices.service('RequestInterceptor', ['Storage', '$q', '$location', 'Config', 'RedirectToAttemptUrl',
+loginServices.service('loginRequestInterceptor', ['loginStorage', '$q', '$location', 'loginConfig', 'loginRedirectToAttemptUrl',
 	function(Storage, $q, $location, Config, RedirectToAttemptUrl){
 	
 	this.request = function(config) {

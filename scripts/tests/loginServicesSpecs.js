@@ -2,13 +2,13 @@
 
 describe('Login services', function() {
 
-	beforeEach(module('loginServices'));
+	beforeEach(module('angular-login-loginServices'));
 
-	describe('Config', function() {
+	describe('loginConfig', function() {
 		var service;
 
-		beforeEach(inject(function(Config) {
-			service = Config;
+		beforeEach(inject(function(loginConfig) {
+			service = loginConfig;
 		}));
 
 		describe('getConfiguration', function() {
@@ -27,28 +27,30 @@ describe('Login services', function() {
 		});
 
 		describe('setConfiguration', function() {
-			var newTokenApiUrlEndPoint = 'new_token_api_url_end_point',
-				newPathToLogin = 'new_path_to_login';
+			var newConfig = {
+				tokenApiUrlEndPoint: 'new_token_api_url_end_point',
+				pathToLogin: 'new_path_to_login'
+			};
 
 			beforeEach(function() {
-				service.setConfiguration(newTokenApiUrlEndPoint, newPathToLogin);
+				service.setConfiguration(newConfig);
 			});
 
 			it('should set configuration tokenApiUrlEndPoint property with new value', function() {
-				expect(service.getConfiguration().tokenApiUrlEndPoint).toBe(newTokenApiUrlEndPoint);
+				expect(service.getConfiguration().tokenApiUrlEndPoint).toBe(newConfig.tokenApiUrlEndPoint);
 			});
 
 			it('should set configuration pathToLogin property with new value', function() {
-				expect(service.getConfiguration().pathToLogin).toBe(newPathToLogin);
+				expect(service.getConfiguration().pathToLogin).toBe(newConfig.pathToLogin);
 			});
 		});
 	});
 
-	describe('Storage', function() {
+	describe('loginStorage', function() {
 		var service, $sessionStorage;
 
-		beforeEach(inject(function(Storage, _$sessionStorage_) {
-			service = Storage;
+		beforeEach(inject(function(loginStorage, _$sessionStorage_) {
+			service = loginStorage;
 			$sessionStorage = _$sessionStorage_;
 
 			if ($sessionStorage.token)
@@ -89,13 +91,13 @@ describe('Login services', function() {
 		});
 	});	
 
-	describe('Token', function() {
+	describe('loginToken', function() {
 		var service, $http, tokenApiEndPoint;
 
-		beforeEach(inject(function(Token, $httpBackend, Config) {
-			service = Token;
+		beforeEach(inject(function(loginToken, $httpBackend, loginConfig) {
+			service = loginToken;
 			$http = $httpBackend;
-			tokenApiEndPoint = Config.getConfiguration().tokenApiUrlEndPoint;
+			tokenApiEndPoint = loginConfig.getConfiguration().tokenApiUrlEndPoint;
 		}));
 
 		describe('retrieveToken', function() {
@@ -126,13 +128,13 @@ describe('Login services', function() {
 		});
 	});
 
-	describe('RedirectToAttemptUrl', function() {
+	describe('loginRedirectToAttemptUrl', function() {
 		var service, $location, pathToLogin;
 
-		beforeEach(inject(function(RedirectToAttemptUrl, _$location_, Config) {
-			service = RedirectToAttemptUrl;
+		beforeEach(inject(function(loginRedirectToAttemptUrl, _$location_, loginConfig) {
+			service = loginRedirectToAttemptUrl;
 			$location = _$location_;
-			pathToLogin = Config.getConfiguration().pathToLogin;
+			pathToLogin = loginConfig.getConfiguration().pathToLogin;
 		}));
 
 		it('should set redirectToUrlAfterLogin url as \'/\'', function() {
@@ -168,18 +170,18 @@ describe('Login services', function() {
 		});
 	});
 
-	describe('Auth', function() {
+	describe('loginAuth', function() {
 		var service;
 
-		beforeEach(inject(function(Auth) {
-			service = Auth;
+		beforeEach(inject(function(loginAuth) {
+			service = loginAuth;
 		}));
 
 		describe('isLoggedIn', function() {
 			var spyStorage;
 
-			beforeEach(inject(function(Storage) {
-				spyStorage = spyOn(Storage, 'getToken');
+			beforeEach(inject(function(loginStorage) {
+				spyStorage = spyOn(loginStorage, 'getToken');
 			}));
 
 			it('should invoke method getToken from Storage', function() {
@@ -201,8 +203,8 @@ describe('Login services', function() {
 		describe('getUsername', function() {
 			var spyStorage, spyJwtHelper;
 
-			beforeEach(inject(function(Storage, jwtHelper) {
-				spyStorage = spyOn(Storage, 'getToken');
+			beforeEach(inject(function(loginStorage, jwtHelper) {
+				spyStorage = spyOn(loginStorage, 'getToken');
 				spyJwtHelper = spyOn(jwtHelper, 'decodeToken');	
 
 				spyJwtHelper.and.returnValue({unique_name: 'anyName'});			
@@ -233,8 +235,8 @@ describe('Login services', function() {
 		describe('loggedOut', function() {
 			var spyStorage;
 
-			beforeEach(inject(function(Storage) {
-				spyStorage = spyOn(Storage, 'removeToken');
+			beforeEach(inject(function(loginStorage) {
+				spyStorage = spyOn(loginStorage, 'removeToken');
 
 				service.loggedOut();
 			}));
@@ -247,8 +249,8 @@ describe('Login services', function() {
 		describe('loggedIn', function() {
 			var spyStorage;
 
-			beforeEach(inject(function(Storage) {
-				spyStorage = spyOn(Storage, 'setToken');
+			beforeEach(inject(function(loginStorage) {
+				spyStorage = spyOn(loginStorage, 'setToken');
 
 				service.loggedIn('anyToken');
 			}));
@@ -258,19 +260,19 @@ describe('Login services', function() {
 			});
 		});
 
-		describe('RequestInterceptor', function() {
+		describe('loginRequestInterceptor', function() {
 			var service;
 
-			beforeEach(inject(function(RequestInterceptor) {
-				service = RequestInterceptor;
+			beforeEach(inject(function(loginRequestInterceptor) {
+				service = loginRequestInterceptor;
 			}));
 
 			describe('request', function() {
 				var storageSpy, 
 					config = {};
 
-				beforeEach(inject(function(Storage) {
-					storageSpy = spyOn(Storage, 'getToken');
+				beforeEach(inject(function(loginStorage) {
+					storageSpy = spyOn(loginStorage, 'getToken');
 
 					storageSpy.and.returnValue('anyToken');
 
@@ -290,11 +292,11 @@ describe('Login services', function() {
 				var $location, pathToLogin, 
 					spyRedirectToAttemptUrl;
 
-				beforeEach(inject(function(_$location_, Config, RedirectToAttemptUrl) {
+				beforeEach(inject(function(_$location_, loginConfig, loginRedirectToAttemptUrl) {
 					$location = _$location_;
-					pathToLogin = Config.getConfiguration().pathToLogin;
+					pathToLogin = loginConfig.getConfiguration().pathToLogin;
 
-					spyRedirectToAttemptUrl = spyOn(RedirectToAttemptUrl, 'saveUrl');
+					spyRedirectToAttemptUrl = spyOn(loginRedirectToAttemptUrl, 'saveUrl');
 				}));
 
 				it('should invoke saveUrl method from RedirectToAttemptUrl when error code is 401', function() {

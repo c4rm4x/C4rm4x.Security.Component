@@ -2,25 +2,25 @@
 
 describe('Login controllers', function() {
 
-	beforeEach(module('loginControllers'));
+	beforeEach(module('angular-login-loginControllers'));
 
-	describe('SignoutCtrl', function() {
+	describe('loginSignoutCtrl', function() {
 		var scope;
 
 		beforeEach(inject(function($rootScope, $controller) {
 			scope = $rootScope.$new();
 
-			$controller('SignoutCtrl', {$scope:scope});
+			$controller('loginSignoutCtrl', {$scope:scope});
 		}));
 
 		describe('logout', function() {
 			var $location, pathToLogin,
 				spyAuth;
 
-			beforeEach(inject(function(_$location_, Auth, Config) {
+			beforeEach(inject(function(_$location_, loginAuth, loginConfig) {
 				$location = _$location_;
-				pathToLogin = Config.getConfiguration().pathToLogin;
-				spyAuth = spyOn(Auth, 'loggedOut');
+				pathToLogin = loginConfig.getConfiguration().pathToLogin;
+				spyAuth = spyOn(loginAuth, 'loggedOut');
 
 				scope.logout();
 			}));
@@ -35,13 +35,13 @@ describe('Login controllers', function() {
 		});
 	});
 
-	describe('SigninCtrl', function() {
+	describe('loginSigninCtrl', function() {
 		var scope;
 
 		beforeEach(inject(function($rootScope, $controller) {
 			scope = $rootScope.$new();
 
-			$controller('SigninCtrl', {$scope: scope});
+			$controller('loginSigninCtrl', {$scope: scope});
 		}));
 
 		it('should set error as empty string', function() {
@@ -60,11 +60,11 @@ describe('Login controllers', function() {
 			var deferred,
 				spyAuth, spyToken, spyRedirectToAttemptUrl;
 
-			beforeEach(inject(function($q, Auth, Token, RedirectToAttemptUrl) {
+			beforeEach(inject(function($q, loginAuth, loginToken, loginRedirectToAttemptUrl) {
 				deferred = $q.defer();
-				spyAuth = spyOn(Auth, 'loggedIn');
-				spyToken = spyOn(Token, 'retrieveToken');
-				spyRedirectToAttemptUrl = spyOn(RedirectToAttemptUrl, 'redirect');
+				spyAuth = spyOn(loginAuth, 'loggedIn');
+				spyToken = spyOn(loginToken, 'retrieveToken');
+				spyRedirectToAttemptUrl = spyOn(loginRedirectToAttemptUrl, 'redirect');
 
 				scope.credentials.username = 'anyUsername';
 				scope.credentials.pass = 'anyPass';

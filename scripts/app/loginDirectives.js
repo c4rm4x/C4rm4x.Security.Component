@@ -1,10 +1,10 @@
 'use strict';
 
-var loginDirectives = angular.module('loginDirectives', []);
+var loginDirectives = angular.module('angular-login-loginDirectives', []);
 
-loginDirectives.directive('welcomeUser', [function() {
+loginDirectives.directive('loginwelcomeUser', [function() {
 	return {		
 		restrict: 'E',
-		templateUrl: 'partials/welcomeUser.html'
+		template: '<div ng-show=\'auth.isLoggedIn()\'><p ng-controller=\'loginSignoutCtrl\'>Hello {{auth.getUsername()}} (<a href=\'javascript:void(0)\' ng-click=\'logout()\'>Logout</a>)</p></div>'
 	};
 }]);

@@ -1,8 +1,8 @@
 'use strict';
 
-var loginControllers = angular.module('loginControllers', ['loginServices']);
+var loginControllers = angular.module('angular-login-loginControllers', ['angular-login-loginServices']);
 
-loginControllers.controller('SignoutCtrl', ['$scope', 'Auth', '$location', 'Config',
+loginControllers.controller('loginSignoutCtrl', ['$scope', 'loginAuth', '$location', 'loginConfig',
 	function($scope, Auth, $location, Config) {
 
 		$scope.logout = function() {
@@ -11,7 +11,7 @@ loginControllers.controller('SignoutCtrl', ['$scope', 'Auth', '$location', 'Conf
 		};
 }]);
 
-loginControllers.controller('SigninCtrl', ['$scope', 'Auth', 'Token', 'RedirectToAttemptUrl',
+loginControllers.controller('loginSigninCtrl', ['$scope', 'loginAuth', 'loginToken', 'loginRedirectToAttemptUrl',
 	function($scope, Auth, Token, RedirectToAttemptUrl) {
 	
 		$scope.error = '';

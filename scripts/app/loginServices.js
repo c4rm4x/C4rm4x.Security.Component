@@ -95,6 +95,21 @@ loginServices.service('loginAuth', ['loginStorage', 'jwtHelper', function(Storag
 			.decodeToken(Storage.getToken()).unique_name;
 	};
 
+	this.hasClaim = function(claimType, claimValue) {
+		if (!this.isLoggedIn())
+			return false;
+
+		var payload = jwtHelper
+			.decodeToken(Storage.getToken());
+
+		var value = payload[claimType] || {};
+
+		if (Array.isArray(value))
+			return value.indexOf(claimValue) >= 0;
+		else
+			return value === claimValue;
+	};
+
 }]);
 
 loginServices.service('loginRequestInterceptor', ['loginStorage', '$q', '$location', 'loginConfig', 'loginRedirectToAttemptUrl',

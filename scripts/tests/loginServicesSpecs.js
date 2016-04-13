@@ -232,6 +232,62 @@ describe('Login services', function() {
 			});
 		});
 
+		describe('hasClaim', function() {
+			var spyStorage, spyJwtHelper;
+
+			beforeEach(inject(function(loginStorage, jwtHelper) {
+				spyStorage = spyOn(loginStorage, 'getToken');
+				spyJwtHelper = spyOn(jwtHelper, 'decodeToken');	
+
+				spyJwtHelper.and.returnValue({
+					role: 'anyRole',
+					permissions: [
+						'canRead',
+						'canWrite'					 
+					]
+				});			
+			}));
+
+			it('should invoke method getToken from Storage', function() {
+				service.hasClaim('anyClaimType', 'anyClaimValue');
+				expect(spyStorage).toHaveBeenCalled();
+			});
+
+			it('should return false when getToken from Storage returns falsy',  function() {
+				spyStorage.and.returnValue(undefined);
+				expect(service.hasClaim('anyClaimType', 'anyClaimValue')).toBe(false);
+			});
+
+			it('should invoke method decodeToken from jwtHelper with token returned by getToken from Storage', function() {
+				spyStorage.and.returnValue('anyToken');
+				service.hasClaim('anyClaimType', 'anyClaimValue');
+				expect(spyJwtHelper).toHaveBeenCalledWith('anyToken');
+			});
+
+			describe('with existing token', function() {
+
+				beforeEach(function() {
+					spyStorage.and.returnValue('anyToken');					
+				});
+
+				it('should return false when the claim required does not exist', function() {
+					expect(service.hasClaim('anyClaimType', 'anyClaimValue')).toBe(false);
+				});
+
+				it('should return true when the claim required is an existing simple value', function() {
+					expect(service.hasClaim('role', 'anyRole')).toBe(true);
+				});
+
+				it('should return false when the claim required is not contained in the array', function() {
+					expect(service.hasClaim('permissions', 'anyPermission')).toBe(false);
+				});
+
+				it('should return true when the claim required is contained in the array', function() {
+					expect(service.hasClaim('permissions', 'canRead')).toBe(true);
+				});
+			});
+		});
+
 		describe('loggedOut', function() {
 			var spyStorage;
 
@@ -259,60 +315,60 @@ describe('Login services', function() {
 				expect(spyStorage).toHaveBeenCalledWith('anyToken');
 			});
 		});
+	});
 
-		describe('loginRequestInterceptor', function() {
-			var service;
+	describe('loginRequestInterceptor', function() {
+		var service;
 
-			beforeEach(inject(function(loginRequestInterceptor) {
-				service = loginRequestInterceptor;
+		beforeEach(inject(function(loginRequestInterceptor) {
+			service = loginRequestInterceptor;
+		}));
+
+		describe('request', function() {
+			var storageSpy, 
+				config = {};
+
+			beforeEach(inject(function(loginStorage) {
+				storageSpy = spyOn(loginStorage, 'getToken');
+
+				storageSpy.and.returnValue('anyToken');
+
+				service.request(config);
 			}));
 
-			describe('request', function() {
-				var storageSpy, 
-					config = {};
-
-				beforeEach(inject(function(loginStorage) {
-					storageSpy = spyOn(loginStorage, 'getToken');
-
-					storageSpy.and.returnValue('anyToken');
-
-					service.request(config);
-				}));
-
-				it('should check storage to retrieve token', function() {
-					expect(storageSpy).toHaveBeenCalled();
-				});
-
-				it('should add \'Authorization\' header with the token', function() {
-					expect(config.headers.Authorization).toBe('anyToken');
-				});
+			it('should check storage to retrieve token', function() {
+				expect(storageSpy).toHaveBeenCalled();
 			});
 
-			describe('responseError', function() {
-				var $location, pathToLogin, 
-					spyRedirectToAttemptUrl;
+			it('should add \'Authorization\' header with the token', function() {
+				expect(config.headers.Authorization).toBe('anyToken');
+			});
+		});
 
-				beforeEach(inject(function(_$location_, loginConfig, loginRedirectToAttemptUrl) {
-					$location = _$location_;
-					pathToLogin = loginConfig.getConfiguration().pathToLogin;
+		describe('responseError', function() {
+			var $location, pathToLogin, 
+				spyRedirectToAttemptUrl;
 
-					spyRedirectToAttemptUrl = spyOn(loginRedirectToAttemptUrl, 'saveUrl');
-				}));
+			beforeEach(inject(function(_$location_, loginConfig, loginRedirectToAttemptUrl) {
+				$location = _$location_;
+				pathToLogin = loginConfig.getConfiguration().pathToLogin;
 
-				it('should invoke saveUrl method from RedirectToAttemptUrl when error code is 401', function() {
-					service.responseError({'status': 401});
-					expect(spyRedirectToAttemptUrl).toHaveBeenCalled();
-				});
+				spyRedirectToAttemptUrl = spyOn(loginRedirectToAttemptUrl, 'saveUrl');
+			}));
 
-				it('should set location path to pathToLogin when error code is 401', function(){
-					service.responseError({'status': 401});
-					expect($location.path()).toBe(pathToLogin);
-				});
+			it('should invoke saveUrl method from RedirectToAttemptUrl when error code is 401', function() {
+				service.responseError({'status': 401});
+				expect(spyRedirectToAttemptUrl).toHaveBeenCalled();
+			});
 
-				it('should not set location path to pathToLogin when error code is not 401', function() {
-					service.responseError({'status': 505});
-					expect($location.path()).not.toBe(pathToLogin);
-				});
+			it('should set location path to pathToLogin when error code is 401', function(){
+				service.responseError({'status': 401});
+				expect($location.path()).toBe(pathToLogin);
+			});
+
+			it('should not set location path to pathToLogin when error code is not 401', function() {
+				service.responseError({'status': 505});
+				expect($location.path()).not.toBe(pathToLogin);
 			});
 		});
 	});

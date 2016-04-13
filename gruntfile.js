@@ -54,8 +54,8 @@ module.exports = function(grunt) {
 				files: [
 				{
 					expand: true, 
-					src: 'scripts/app/partials/*',
-					dest: 'src/partials/',
+					src: 'scripts/app/examples/*',
+					dest: 'src/examples/',
 					flatten: true
 				}]
 			}

@@ -1,5 +1,139 @@
 'use strict';
 
+angular.module('angular-login-fbLoginConstants', [])
+	.constant('LoginStatus', {
+		OK: 0,
+		NotAuthorized: -1,
+		NotLoggedIn: -2,
+		Unknown: -3,
+		Unexpected : -4
+	});
+'use strict';
+
+var fbLoginDirectives = angular.module('angular-login-fbLoginDirectives', []);
+
+fbLoginDirectives.directive('fbLoginWelcomeUser', [function() {
+	return {		
+		restrict: 'E',
+		template: '<div ng-show=\'auth.isLoggedIn()\'><div><img ng-src=\'{{auth.getPicture()}}\'><span>{{auth.getUsername()}}</span></div> (<a href=\'javascript:void(0)\' ng-click=\'auth.logOut()\'>Logout</a>)</div>'
+	};
+}]);
+'use strict';
+
+var fbLoginMain = angular.module('angular-login-fbLoginMain', [
+	'angular-login-fbLoginConstants',
+	'angular-login-fbLoginServices',
+	'angular-login-fbLoginDirectives' ]);
+'use strict';
+
+var fbLoginServices = angular.module('angular-login-fbLoginServices', [
+	'angular-login-loginServices',
+	'angular-login-fbLoginConstants']);
+
+fbLoginServices.service('fbLoginConfig', ['loginConfig', function(loginConfig) {
+
+	this.configuration = {
+		appId: 'appId',
+		channelUrl: 'app/channel.html'
+	};
+
+	this.setConfiguration = function(newConfig) {
+		this.configuration.appId = newConfig.appId || '';
+		this.configuration.channelUrl = newConfig.channelUrl || '';
+		loginConfig.setConfiguration(newConfig);
+	};
+
+	this.getConfiguration = function() {
+		return angular.merge({}, this.configuration, loginConfig.getConfiguration());
+	};
+}]);
+
+fbLoginServices.service('fbLoginAuth', ['loginAuth', 
+	function(loginAuth) {
+
+	this.isLoggedIn = function() {
+		return loginAuth.isLoggedIn();
+	};
+
+	this.loggedIn = function(token) {
+		loginAuth.loggedIn(token);
+	};
+
+	this.logOut = function() {
+		loginAuth.loggedOut();
+	};
+
+	this.getUsername = function() {
+		return loginAuth.getUsername();		
+	};
+
+	this.getPicture = function() {
+		return loginAuth.getClaimValue('http://schemas.xmlsoap.org/ws/2005/05/identity/claims/uri');
+	}
+
+	this.hasClaim = function(claimType, claimValue) {
+		return loginAuth.hasClaim(claimType, claimValue);
+	};	
+}]);
+
+fbLoginServices.service('fbLoginEventHandler', ['fbLoginAuth', 'fbLoginConfig', 'loginToken', 'LoginStatus', '$q',
+	function(Auth, Config, Token, Status, $q) {
+	
+	this.init = function() {
+		var deferred = $q.defer();
+
+		function handleSuccess(authResponse) {	
+
+			function retrieveToken(authResponse) {
+				Token.retrieveToken(authResponse.userID, authResponse.accessToken)
+					.then(function(token) {
+						Auth.loggedIn(token);
+					})
+					.then(function() {
+						deferred.resolve(Status.OK);
+					})
+					.catch(function(error) {
+						if (error.code && error.code === 'AUTH_001')
+							deferred.reject(Status.Unknown);
+						else
+							deferred.reject(Status.Unexpected);
+					});
+			};
+
+			if (Auth.isLoggedIn()) deferred.resolve(Status.OK);
+			else retrieveToken(authResponse);		
+		};
+
+		function statusChangeCallback(response) {
+			if (response.status === 'connected' && response.authResponse) {
+				handleSuccess(response.authResponse);				
+			} else if (response.status === 'not_authorized'){
+				deferred.reject(Status.NotAuthorized);
+			} else {				
+				FB.Event.subscribe('auth.statusChange', function(response) {
+					statusChangeCallback(response);
+				});
+			}
+		};
+
+		FB.init({
+			appId: Config.appId,
+			channelUrl: Config.channelUrl,
+			status: true,
+			cookie: true,
+			xfbml: true
+		});
+
+		FB.getLoginStatus(function(response) {
+			statusChangeCallback(response);
+		});
+
+		return deferred.promise;
+	};
+
+}]);
+'use strict';
+
 var loginControllers = angular.module('angular-login-loginControllers', ['angular-login-loginServices']);
 
 loginControllers.controller('loginSignoutCtrl', ['$scope', 'loginAuth', '$location', 'loginConfig',
@@ -40,7 +174,7 @@ loginControllers.controller('loginSigninCtrl', ['$scope', 'loginAuth', 'loginTok
 				.catch(function() {
 					setError('Username/password combination provided is incorrect');
 				});
-	};
+		};
 }]);
 'use strict';
 
@@ -108,8 +242,8 @@ loginServices.service('loginToken', ['$http', '$q', 'loginConfig', function($htt
 			.then(function(response) {
 				deferred.resolve(response.data.token);
 			})
-			.catch (function() {
-				deferred.reject('');
+			.catch (function(error) {
+				deferred.reject(error.data);
 			});
 
 		return deferred.promise;
@@ -155,14 +289,18 @@ loginServices.service('loginAuth', ['loginStorage', 'jwtHelper', function(Storag
 			.decodeToken(Storage.getToken()).unique_name;
 	};
 
-	this.hasClaim = function(claimType, claimValue) {
+	this.getClaimValue = function(claimType) {
 		if (!this.isLoggedIn())
-			return false;
+			return {};
 
 		var payload = jwtHelper
 			.decodeToken(Storage.getToken());
 
-		var value = payload[claimType] || {};
+		return payload[claimType] || {};
+	};
+
+	this.hasClaim = function(claimType, claimValue) {
+		var value = this.getClaimValue(claimType);
 
 		if (Array.isArray(value))
 			return value.indexOf(claimValue) >= 0;

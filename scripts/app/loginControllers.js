@@ -40,5 +40,5 @@ loginControllers.controller('loginSigninCtrl', ['$scope', 'loginAuth', 'loginTok
 				.catch(function() {
 					setError('Username/password combination provided is incorrect');
 				});
-	};
+		};
 }]);

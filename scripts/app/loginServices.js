@@ -48,8 +48,8 @@ loginServices.service('loginToken', ['$http', '$q', 'loginConfig', function($htt
 			.then(function(response) {
 				deferred.resolve(response.data.token);
 			})
-			.catch (function() {
-				deferred.reject('');
+			.catch (function(error) {
+				deferred.reject(error.data);
 			});
 
 		return deferred.promise;
@@ -95,14 +95,18 @@ loginServices.service('loginAuth', ['loginStorage', 'jwtHelper', function(Storag
 			.decodeToken(Storage.getToken()).unique_name;
 	};
 
-	this.hasClaim = function(claimType, claimValue) {
+	this.getClaimValue = function(claimType) {
 		if (!this.isLoggedIn())
-			return false;
+			return {};
 
 		var payload = jwtHelper
 			.decodeToken(Storage.getToken());
 
-		var value = payload[claimType] || {};
+		return payload[claimType] || {};
+	};
+
+	this.hasClaim = function(claimType, claimValue) {
+		var value = this.getClaimValue(claimType);
 
 		if (Array.isArray(value))
 			return value.indexOf(claimValue) >= 0;

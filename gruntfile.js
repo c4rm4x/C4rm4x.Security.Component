@@ -9,9 +9,9 @@ module.exports = function(grunt) {
 
 		jasmine: {
 			pivotal: {
-	            src: 'scripts/app/*.js',
+	            src: 'scripts/app/**/*.js',
 	            options: {
-	                specs: 'scripts/tests/*.js',
+	                specs: 'scripts/tests/**/*.js',
 	                vendor: [
 	                    'bower_components/angular/angular.js',
 	                    'bower_components/angular-route/angular-route.js',
@@ -32,7 +32,7 @@ module.exports = function(grunt) {
 
 		concat: {
 			js: {
-				src: 'scripts/app/*.js',
+				src: 'scripts/app/**/*.js',
 				dest: 'src/angular-login.js'
 			}
 		},

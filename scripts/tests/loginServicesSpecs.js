@@ -121,7 +121,7 @@ describe('Login services', function() {
 				service
 					.retrieveToken('anyUser', 'anySecret')
 					.catch(function(response) {
-						expect(response).toBe('');
+						expect(response.message).toBe('nope');
 					});
 				$http.flush();
 			});

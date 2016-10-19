@@ -31,6 +31,14 @@ describe('FB Login services', function() {
 				expect(service.getConfiguration().channelUrl).not.toBe('');
 			});
 
+			it('should return a configuration with a not empty logoutUrl property', function() {
+				expect(service.getConfiguration().logoutUrl).not.toBe('');
+			});
+
+			it('should return a configuration with a not empty successUrl property', function() {
+				expect(service.getConfiguration().successUrl).not.toBe('');
+			});
+
 			it('should return a configuration with all the properties from loginConfig configuration', function() {
 				var actual,
 					expectation = {
@@ -50,7 +58,8 @@ describe('FB Login services', function() {
 			var setConfiguration,
 				newConfig = {
 					appId: 'new_app_id',
-					channelUrl: 'new_channel_url'
+					channelUrl: 'new_channel_url',
+					logoutUrl: 'new_logout_url'
 				};
 
 			beforeEach(inject(function(loginConfig) {
@@ -67,11 +76,15 @@ describe('FB Login services', function() {
 				expect(service.getConfiguration().channelUrl).toBe(newConfig.channelUrl);				
 			});
 
+			it('should set configuration logoutUrl property with new value', function() {
+				expect(service.getConfiguration().logoutUrl).toBe(newConfig.logoutUrl);				
+			});
+
 			it('should invoke setConfiguration from loginAuth with the config', function() {
 				expect(setConfiguration).toHaveBeenCalledWith(newConfig);
 			});
 		});
-	});
+	});	
 
 	describe('fbLoginAuth', function() {
 		var service;
@@ -121,11 +134,11 @@ describe('FB Login services', function() {
 		describe('logOut', function() {
 			var loggedOut;
 
-			beforeEach(inject(function(loginAuth) {
-				loggedOut = spyOn(loginAuth, 'loggedOut');
+			beforeEach(inject(function(loginAuth) {				
+				loggedOut = spyOn(loginAuth, 'loggedOut');						
 			}));
 
-			it('should invoke loggedOut from loginAuth', function() {
+			it('should invoke loggedOut from loginAuth', function() {				
 				service.logOut();
 				expect(loggedOut).toHaveBeenCalled();
 			});
@@ -169,6 +182,11 @@ describe('FB Login services', function() {
 				getClaimValue.and.returnValue(picture);
 				expect(service.getPicture()).toBe(picture);
 			});
+
+			it('should return emtpy string when the value returned by loginAuth is undefined', function() {
+				getClaimValue.and.returnValue();
+				expect(service.getPicture()).toBe('');
+			});
 		});
 
 		describe('hasClaim', function() {
@@ -195,7 +213,7 @@ describe('FB Login services', function() {
 				hasClaim.and.returnValue(false);
 				expect(service.hasClaim('anyClaimType', 'anyClaimValue')).toBe(false);
 			});
-		})
+		});
 	});
 
 });

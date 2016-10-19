@@ -96,13 +96,12 @@ loginServices.service('loginAuth', ['loginStorage', 'jwtHelper', function(Storag
 	};
 
 	this.getClaimValue = function(claimType) {
-		if (!this.isLoggedIn())
-			return {};
+		if (!this.isLoggedIn()) return;
 
 		var payload = jwtHelper
 			.decodeToken(Storage.getToken());
 
-		return payload[claimType] || {};
+		return payload[claimType];
 	};
 
 	this.hasClaim = function(claimType, claimValue) {

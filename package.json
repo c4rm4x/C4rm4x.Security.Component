@@ -1,6 +1,6 @@
 {
   "name": "securitymodule",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "description": "Security module for all webapps using angular interceptors and authorization headers based on JWT",
   "main": "src/angular-login.js",
   "scripts": {
@@ -27,5 +27,8 @@
     "grunt-contrib-jasmine": "^1.0.0",
     "grunt-contrib-uglify": "^1.0.1",
     "grunt-contrib-watch": "^1.0.0"
+  },
+  "dependencies": {
+    "grunt-cli": "^1.2.0"
   }
 }

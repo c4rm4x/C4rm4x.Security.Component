@@ -1,20 +1,21 @@
 'use strict';
 
 var fbLoginServices = angular.module('angular-login-fbLoginServices', [
-	'angular-login-loginServices',
-	'angular-login-fbLoginConstants']);
+	'angular-login-loginServices']);
 
 fbLoginServices.service('fbLoginConfig', ['loginConfig', function(loginConfig) {
 
 	this.configuration = {
 		appId: 'appId',
-		channelUrl: 'app/channel.html'
+		channelUrl: 'app/channel.html',
+		logoutUrl: '/logout'
 	};
 
 	this.setConfiguration = function(newConfig) {
 		this.configuration.appId = newConfig.appId || '';
 		this.configuration.channelUrl = newConfig.channelUrl || '';
-		loginConfig.setConfiguration(newConfig);
+		this.configuration.logoutUrl = newConfig.logoutUrl || '';		
+		loginConfig.setConfiguration(newConfig);		
 	};
 
 	this.getConfiguration = function() {
@@ -22,7 +23,7 @@ fbLoginServices.service('fbLoginConfig', ['loginConfig', function(loginConfig) {
 	};
 }]);
 
-fbLoginServices.service('fbLoginAuth', ['loginAuth', 
+fbLoginServices.service('fbLoginAuth', ['loginAuth',
 	function(loginAuth) {
 
 	this.isLoggedIn = function() {
@@ -42,7 +43,7 @@ fbLoginServices.service('fbLoginAuth', ['loginAuth',
 	};
 
 	this.getPicture = function() {
-		return loginAuth.getClaimValue('http://schemas.xmlsoap.org/ws/2005/05/identity/claims/uri');
+		return loginAuth.getClaimValue('http://schemas.xmlsoap.org/ws/2005/05/identity/claims/uri') || '';
 	}
 
 	this.hasClaim = function(claimType, claimValue) {
@@ -50,11 +51,33 @@ fbLoginServices.service('fbLoginAuth', ['loginAuth',
 	};	
 }]);
 
-fbLoginServices.service('fbLoginEventHandler', ['fbLoginAuth', 'fbLoginConfig', 'loginToken', 'LoginStatus', '$q',
-	function(Auth, Config, Token, Status, $q) {
+fbLoginServices.service('fbLoginEventAggregator', [function() {
+
+	var subscribers = {};
+
+	this.subscribe = function(type, callback) {
+		if (!subscribers[type])
+			subscribers[type] = [callback];
+		else
+			subscribers[type].push(callback);
+	};
+
+	this.publish = function(type, args) {
+		if (!subscribers[type]) return;
+
+		angular.forEach(subscribers[type], function(subscriber) {
+			subscriber(args);
+		});
+	};
+
+}]);
+
+fbLoginServices.service('fbLoginEventHandler', ['fbLoginAuth', 'fbLoginConfig', 'fbLoginEventAggregator', 'loginToken', 
+	function(Auth, Config, EventAggregator, Token) {
 	
 	this.init = function() {
-		var deferred = $q.defer();
+		var ERROR = 'error',
+			OK = 'ok';
 
 		function handleSuccess(authResponse) {	
 
@@ -64,45 +87,50 @@ fbLoginServices.service('fbLoginEventHandler', ['fbLoginAuth', 'fbLoginConfig', 
 						Auth.loggedIn(token);
 					})
 					.then(function() {
-						deferred.resolve(Status.OK);
+						EventAggregator.publish(OK, authResponse);
 					})
 					.catch(function(error) {
-						if (error.code && error.code === 'AUTH_001')
-							deferred.reject(Status.Unknown);
-						else
-							deferred.reject(Status.Unexpected);
+						EventAggregator.publish(ERROR, error);
 					});
 			};
 
-			if (Auth.isLoggedIn()) deferred.resolve(Status.OK);
-			else retrieveToken(authResponse);		
+			retrieveToken(authResponse);		
 		};
 
 		function statusChangeCallback(response) {
 			if (response.status === 'connected' && response.authResponse) {
 				handleSuccess(response.authResponse);				
-			} else if (response.status === 'not_authorized'){
-				deferred.reject(Status.NotAuthorized);
-			} else {				
-				FB.Event.subscribe('auth.statusChange', function(response) {
-					statusChangeCallback(response);
-				});
+			} else {
+				EventAggregator.publish(ERROR, response.status);
 			}
 		};
 
 		FB.init({
-			appId: Config.appId,
-			channelUrl: Config.channelUrl,
+			appId: Config.getConfiguration().appId,
+			channelUrl: Config.getConfiguration().channelUrl,
 			status: true,
 			cookie: true,
 			xfbml: true
 		});
 
-		FB.getLoginStatus(function(response) {
+		FB.Event.subscribe('auth.statusChange', function(response) {
 			statusChangeCallback(response);
 		});
 
-		return deferred.promise;
+		return this;
+	};
+
+	function op(type, handler) {
+		EventAggregator.subscribe(type, handler);
+		return this;
+	};
+
+	this.onSuccess = function(handler) {
+		return on(OK, handler);
+	};
+
+	this.onFailure = function(handler) {
+		return on(ERROR, handler);
 	};
 
 }]);

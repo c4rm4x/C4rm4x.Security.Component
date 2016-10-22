@@ -346,15 +346,22 @@ describe('Login services', function() {
 		});
 
 		describe('responseError', function() {
-			var $location, pathToLogin, 
+		    var $location, pathToLogin,
+                spyRemoveToken,
 				spyRedirectToAttemptUrl;
 
-			beforeEach(inject(function(_$location_, loginConfig, loginRedirectToAttemptUrl) {
+			beforeEach(inject(function(_$location_, loginConfig, loginStorage, loginRedirectToAttemptUrl) {
 				$location = _$location_;
 				pathToLogin = loginConfig.getConfiguration().pathToLogin;
 
+				spyRemoveToken = spyOn(loginStorage, 'removeToken');
 				spyRedirectToAttemptUrl = spyOn(loginRedirectToAttemptUrl, 'saveUrl');
 			}));
+
+			it('should invoke removeToken from Storage when error code is 401', function () {
+			    service.responseError({ 'status': 401 });
+			    expect(spyRemoveToken).toHaveBeenCalled();
+			});
 
 			it('should invoke saveUrl method from RedirectToAttemptUrl when error code is 401', function() {
 				service.responseError({'status': 401});

@@ -102,9 +102,10 @@ fbLoginServices.service('fbLoginEventAggregator', [function() {
 fbLoginServices.service('fbLoginEventHandler', ['fbLoginAuth', 'fbLoginConfig', 'fbLoginEventAggregator', 'loginToken', 
 	function(Auth, Config, EventAggregator, Token) {
 	
-	this.init = function() {
-		var ERROR = 'error',
-			OK = 'ok';
+	var OK = 'ok',
+        ERROR = 'error';
+
+	this.init = function() {		
 
 		function handleSuccess(authResponse) {	
 
@@ -135,7 +136,7 @@ fbLoginServices.service('fbLoginEventHandler', ['fbLoginAuth', 'fbLoginConfig', 
 		FB.init({
 			appId: Config.getConfiguration().appId,
 			channelUrl: Config.getConfiguration().channelUrl,
-			status: true,
+			status: false,
 			cookie: true,
 			xfbml: true
 		});
@@ -147,7 +148,7 @@ fbLoginServices.service('fbLoginEventHandler', ['fbLoginAuth', 'fbLoginConfig', 
 		return this;
 	};
 
-	function op(type, handler) {
+	function on(type, handler) {
 		EventAggregator.subscribe(type, handler);
 		return this;
 	};
@@ -353,7 +354,8 @@ loginServices.service('loginRequestInterceptor', ['loginStorage', '$q', '$locati
 	};
 
 	this.responseError = function(response) {
-		if (response.status == 401) {
+	    if (response.status == 401) {
+	        Storage.removeToken();
 			RedirectToAttemptUrl.saveUrl();
 			$location.path(Config.getConfiguration().pathToLogin);
 		}

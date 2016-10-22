@@ -130,7 +130,8 @@ loginServices.service('loginRequestInterceptor', ['loginStorage', '$q', '$locati
 	};
 
 	this.responseError = function(response) {
-		if (response.status == 401) {
+	    if (response.status == 401) {
+	        Storage.removeToken();
 			RedirectToAttemptUrl.saveUrl();
 			$location.path(Config.getConfiguration().pathToLogin);
 		}

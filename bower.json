@@ -1,6 +1,6 @@
 {
   "name": "securitymodule",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Security module for all webapps using angular interceptors and authorization headers based on JWT",
   "main": "src/angular-login.js",
   "authors": [

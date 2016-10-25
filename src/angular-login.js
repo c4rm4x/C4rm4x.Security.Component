@@ -150,15 +150,16 @@ fbLoginServices.service('fbLoginEventHandler', ['fbLoginAuth', 'fbLoginConfig', 
 
 	function on(type, handler) {
 		EventAggregator.subscribe(type, handler);
-		return this;
 	};
 
 	this.onSuccess = function(handler) {
-		return on(OK, handler);
+		on(OK, handler);
+		return this;
 	};
 
 	this.onFailure = function(handler) {
-		return on(ERROR, handler);
+		on(ERROR, handler);
+		return this;
 	};
 
 }]);

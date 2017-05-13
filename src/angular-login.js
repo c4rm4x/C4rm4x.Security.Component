@@ -255,17 +255,15 @@ loginServices.service('loginConfig', [function() {
 
 
 loginServices.service('loginStorage', ['$sessionStorage', '$cookies', 'loginConfig',
-	function($sessionStorage, $cookies, Config) {
-
-	this.cookies = Config.getConfiguration().cookies;
+	function($sessionStorage, $cookies, Config) {	
 	
 	this.getToken = function () {
 		var token = $sessionStorage.token;
 
-		if (!token && this.cookies) {
-			token = $cookies.get(this.cookies.name);
+		if (!token && Config.getConfiguration().cookies) {
+			token = $cookies.get(Config.getConfiguration().cookies.name);
 
-			if (!token)
+			if (token)
 				$sessionStorage.token = token;
 		}
 
@@ -275,11 +273,11 @@ loginServices.service('loginStorage', ['$sessionStorage', '$cookies', 'loginConf
 	this.setToken = function (token) {
 		$sessionStorage.token = token;
 
-		if (this.cookies) {
+		if (Config.getConfiguration().cookies) {
 			var expireDate = new Date();
-			expireDate.setTime(expireDate.getTime() + ((this.cookies.ttl || 1)*60*60*1000)); 
+			expireDate.setTime(expireDate.getTime() + ((Config.getConfiguration().cookies.ttl || 1)*60*60*1000)); 
 
-			$cookies.put(this.cookies.name, token, {
+			$cookies.put(Config.getConfiguration().cookies.name, token, {
 				expires: expireDate
 			});
 		}
@@ -289,8 +287,8 @@ loginServices.service('loginStorage', ['$sessionStorage', '$cookies', 'loginConf
 		if ($sessionStorage.token)
 			delete $sessionStorage.token;
 
-		if (this.cookies && $cookies.get(this.cookies.name))
-			$cookies.remove(this.cookies.name);
+		if (Config.getConfiguration().cookies && $cookies.get(Config.getConfiguration().cookies.name))
+			$cookies.remove(Config.getConfiguration().cookies.name);
 	};
 
 }]);

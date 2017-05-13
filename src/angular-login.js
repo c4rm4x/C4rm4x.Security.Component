@@ -225,18 +225,26 @@ var loginMain = angular.module('angular-login-loginMain', [
 	'angular-login-loginDirectives' ]);
 'use strict';
 
-var loginServices = angular.module('angular-login-loginServices', ['ngStorage', 'angular-jwt']);
+var loginServices = angular.module('angular-login-loginServices', [
+	'ngStorage', 
+	'angular-jwt',
+	'ngCookies']);
 
 loginServices.service('loginConfig', [function() {
 
 	this.configuration = {
 		tokenApiUrlEndPoint: 'http://localhost:8080/api/token',
-		pathToLogin: '/login'
+		pathToLogin: '/login',
+		cookies: {			
+			name: 'auth',
+			ttl: 1
+		}
 	};
 
 	this.setConfiguration = function(newConfig) {
 		this.configuration.tokenApiUrlEndPoint = newConfig.tokenApiUrlEndPoint || '';
 		this.configuration.pathToLogin = newConfig.pathToLogin || '';
+		this.configuration.cookies = newConfig.cookies;
 	};
 
 	this.getConfiguration = function() {
@@ -246,19 +254,43 @@ loginServices.service('loginConfig', [function() {
 }]);
 
 
-loginServices.service('loginStorage', ['$sessionStorage', function($sessionStorage) {
+loginServices.service('loginStorage', ['$sessionStorage', '$cookies', 'loginConfig',
+	function($sessionStorage, $cookies, Config) {
+
+	this.cookies = Config.getConfiguration().cookies;
 	
 	this.getToken = function () {
-		return $sessionStorage.token || '';
+		var token = $sessionStorage.token;
+
+		if (!token && this.cookies) {
+			token = $cookies.get(this.cookies.name);
+
+			if (!token)
+				$sessionStorage.token = token;
+		}
+
+		return token || '';
 	};
 
 	this.setToken = function (token) {
 		$sessionStorage.token = token;
+
+		if (this.cookies) {
+			var expireDate = new Date();
+			expireDate.setTime(expireDate.getTime() + ((this.cookies.ttl || 1)*60*60*1000)); 
+
+			$cookies.put(this.cookies.name, token, {
+				expires: expireDate
+			});
+		}
 	};
 
 	this.removeToken = function () {
 		if ($sessionStorage.token)
 			delete $sessionStorage.token;
+
+		if (this.cookies && $cookies.get(this.cookies.name))
+			$cookies.remove(this.cookies.name);
 	};
 
 }]);

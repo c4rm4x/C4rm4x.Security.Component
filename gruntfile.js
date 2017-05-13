@@ -17,7 +17,8 @@ module.exports = function(grunt) {
 	                    'bower_components/angular-route/angular-route.js',
 	                    'bower_components/angular-mocks/angular-mocks.js',
 	                    'bower_components/ngstorage/ngStorage.js',
-	                    'bower_components/angular-jwt/dist/angular-jwt.js'
+	                    'bower_components/angular-jwt/dist/angular-jwt.js',
+	                    'bower_components/angular-cookies/angular-cookies.js'
 	                ]
 	            }
 	        }

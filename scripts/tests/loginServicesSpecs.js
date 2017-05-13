@@ -24,12 +24,28 @@ describe('Login services', function() {
 			it('should return a configuration with a not empty pathToLogin property', function() {
 				expect(service.getConfiguration().pathToLogin).not.toBe('');
 			});
+
+			it('should return a configuration with a non null cookies property', function() {
+				expect(service.getConfiguration().cookies).not.toBe(null);
+			});
+
+			it('should return a configuration with cookies name property set as auth', function() {
+				expect(service.getConfiguration().cookies.name).toBe('auth');
+			});
+
+			it('should return a configuration with cookies ttl property as 1', function() {
+				expect(service.getConfiguration().cookies.ttl).toBe(1);
+			});
 		});
 
 		describe('setConfiguration', function() {
 			var newConfig = {
 				tokenApiUrlEndPoint: 'new_token_api_url_end_point',
-				pathToLogin: 'new_path_to_login'
+				pathToLogin: 'new_path_to_login',
+				cookies: {
+					name: 'new_cookie_name',
+					ttl: 24
+				}
 			};
 
 			beforeEach(function() {
@@ -43,18 +59,27 @@ describe('Login services', function() {
 			it('should set configuration pathToLogin property with new value', function() {
 				expect(service.getConfiguration().pathToLogin).toBe(newConfig.pathToLogin);
 			});
+
+			it('should set configuraton cookies property with new cookie configuration', function() {
+				expect(service.getConfiguration().cookies).toEqual(newConfig.cookies);
+			});
 		});
 	});
 
 	describe('loginStorage', function() {
-		var service, $sessionStorage;
+		var service, config, $sessionStorage, $cookies;
 
-		beforeEach(inject(function(loginStorage, _$sessionStorage_) {
+		beforeEach(inject(function(loginStorage, loginConfig, _$sessionStorage_, _$cookies_) {
 			service = loginStorage;
+			config = loginConfig.getConfiguration().cookies;
 			$sessionStorage = _$sessionStorage_;
+			$cookies = _$cookies_;
 
 			if ($sessionStorage.token)
-				delete $sessionStorage.token;			
+				delete $sessionStorage.token;	
+
+			if ($cookies.get(config.name))
+				$cookies.remove(config.name);
 		}));	
 
 		describe('getToken', function() {
@@ -67,7 +92,13 @@ describe('Login services', function() {
 				$sessionStorage.token = 'anyToken';
 
 				expect(service.getToken()).toBe('anyToken');
-			});		
+			});	
+
+			it('should return token property from $cookies when token property from $sessionStorage is undefined but cookie is not', function() {
+				$cookies.put(config.name, 'anyTokenAlt');
+
+				expect(service.getToken()).toBe('anyTokenAlt');
+			});	
 		});
 
 		describe('setToken', function() {
@@ -76,6 +107,12 @@ describe('Login services', function() {
 				service.setToken('newToken');
 
 				expect($sessionStorage.token).toBe('newToken');
+			});
+
+			it('should set new token @cookies', function() {
+				service.setToken('newToken');
+
+				expect($cookies.get(config.name)).toBe('newToken');
 			});
 		});
 
